@@ -506,8 +506,9 @@ ExportProvinceReports "Lugo", "C:\Reports"
 The design is not tied to Access. The same model migrates to PostgreSQL or SQL Server, where constraints can be declared explicitly.
 
 ```sql
-CREATE TABLE site_cost_line (
-    site_cost_line_id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+CREATE TABLE
+    site_cost_line (
+    site_cost_line_id integer       GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     site_id           integer       NOT NULL REFERENCES site (site_id),
     unit_cost_id      integer       NOT NULL REFERENCES unit_cost (unit_cost_id),
     quantity          numeric(12,2) NOT NULL DEFAULT 0 CHECK (quantity >= 0),
@@ -515,24 +516,45 @@ CREATE TABLE site_cost_line (
 );
 
 -- Total CAPEX per site
-SELECT s.site_id, s.site_code, s.site_name, s.province,
-       SUM(scl.quantity * uc.unit_cost_usd) AS total_cost_usd
-FROM site AS s
-JOIN site_cost_line AS scl ON scl.site_id = s.site_id
-JOIN unit_cost      AS uc  ON uc.unit_cost_id = scl.unit_cost_id
-GROUP BY s.site_id, s.site_code, s.site_name, s.province
-ORDER BY total_cost_usd DESC;
+SELECT
+    s.site_id,
+    s.site_code,
+    s.site_name,
+    s.province,
+    SUM(scl.quantity * uc.unit_cost_usd) AS total_cost_usd
+FROM
+    site AS s
+    JOIN site_cost_line AS scl ON scl.site_id = s.site_id
+    JOIN unit_cost      AS uc  ON uc.unit_cost_id = scl.unit_cost_id
+GROUP BY
+    s.site_id,
+    s.site_code,
+    s.site_name,
+    s.province
+ORDER BY
+    total_cost_usd
+DESC;
 
 -- Schedule variance with status classification
-SELECT s.site_code, m.milestone_name, d.finish_plan, d.finish_real,
-       (d.finish_real - d.finish_plan) AS variance_days,
-       CASE WHEN d.finish_real IS NULL            THEN 'Not Completed'
-            WHEN d.finish_real > d.finish_plan    THEN 'Late'
-            ELSE 'On Time' END                    AS status
-FROM milestone_date AS d
-JOIN site           AS s ON s.site_id = d.site_id
-JOIN milestone      AS m ON m.milestone_id = d.milestone_id
-ORDER BY variance_days DESC NULLS LAST;
+SELECT
+    s.site_code,
+    m.milestone_name,
+    d.finish_plan,
+    d.finish_real,
+    (d.finish_real - d.finish_plan) AS variance_days,
+    CASE
+        WHEN d.finish_real IS NULL THEN 'Not Completed'
+        WHEN d.finish_real > d.finish_plan THEN 'Late'
+        ELSE 'On Time'
+    END AS status
+FROM
+    milestone_date AS d
+    JOIN site AS s
+        ON s.site_id = d.site_id
+    JOIN milestone AS m
+        ON m.milestone_id = d.milestone_id
+ORDER BY variance_days
+    DESC NULLS LAST;
 ```
 
 ---
