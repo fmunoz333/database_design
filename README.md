@@ -1,16 +1,54 @@
-# Terranova 100-Site 4G Rural Rollout — Relational Database & Reporting System
+# Terranova: Relational Database & Executive Reporting System
 
-**Microsoft Access · SQL · Visual Basic (VBA) · Data Modelling · Automated Reporting**
+![Database](https://img.shields.io/badge/Database-Microsoft%20Access-A4373A?style=for-the-badge)
+![SQL](https://img.shields.io/badge/Query%20Language-SQL%20%28ACE%29-4479A1?style=for-the-badge)
+![VBA](https://img.shields.io/badge/Automation-VBA-512BD4?style=for-the-badge)
+![Modelling](https://img.shields.io/badge/Modelling-3NF%20%7C%20ERD-00838F?style=for-the-badge)
+![Reporting](https://img.shields.io/badge/Reporting-PDF%20Automation-2E7D32?style=for-the-badge)
+![Data](https://img.shields.io/badge/Data-Synthetic-6C757D?style=for-the-badge)
 
-*Author: Fernando Muñoz — Project Management, Data Analytics & Automation*
+> [!NOTE]
+> **Portfolio project.** Built from 30+ years of hands-on experience managing large-scale mobile network rollouts. The company name, geography and all figures are **fictional (synthetic data)**. The goal is to demonstrate how I design relational databases and turn complex project data into SQL queries and executive-ready reports.
+
+**From scattered spreadsheets to one auditable source of truth: 100 sites, 4,600 cost lines and 1,100 schedule milestones, answered in seconds.**
+
+![Terranova database summary](./assets/00summary.png)
 
 ---
 
-## 1. Project Title & Overview
+## Table of Contents
 
-**Terranova** is a normalized relational database and reporting system built to plan, cost, and track a **100-site rural 4G network rollout** across four provinces of northern Spain (A Coruña, Asturias, Lugo, Pontevedra), serving an estimated **99,320 inhabitants**.
+1. [Project Overview](#1-project-overview)
+2. [Headline Results](#2-headline-results)
+3. [Data Architecture](#3-data-architecture)
+4. [Role & Responsibilities](#4-role--responsibilities)
+5. [The Challenge](#5-the-challenge)
+6. [Approach & Implementation](#6-approach--implementation)
+7. [Data Quality & Validation](#7-data-quality--validation)
+8. [Results & Business Value](#8-results--business-value)
+9. [Visuals](#9-visuals)
+10. [Repository Structure & Quick Start](#10-repository-structure--quick-start)
+11. [Portability: PostgreSQL Equivalent](#11-portability-postgresql-equivalent)
+12. [Skills Demonstrated](#12-skills-demonstrated)
+13. [Lessons Learned](#13-lessons-learned)
+14. [About the Author](#14-about-the-author)
 
-The project replaces scattered spreadsheets with a single source of truth that connects site data, regulatory and permitting status, infrastructure, power, transmission/RF design, a 45-item unit-cost catalogue, and an 11-milestone schedule for every site. On top of that model sit parameterized SQL queries, a multi-subreport Site Profile report, and a Visual Basic automation layer that turns raw project data into management-ready dashboards and recurring reports.
+---
+
+## 1. Project Overview
+
+**Terranova** is a normalized relational database and reporting system built to plan, cost and track a **100-site rural 4G network rollout** across four provinces of northern Spain (A Coruña, Asturias, Lugo, Pontevedra), serving an estimated **99,320 inhabitants**.
+
+It replaces scattered spreadsheets with a single source of truth that connects site data, regulatory and permitting status, infrastructure, power, transmission/RF design, a unit-cost catalogue and an 11-milestone schedule for every site. On top of the model sit parameterized SQL queries, a multi-subreport **Site Profile** report and a VBA automation layer that produces recurring management reports.
+
+### Business questions the system answers
+
+| Management question | Delivered by |
+|---|---|
+| Where is the money going? | `qrySiteTotalCost`, `qryCostByArea` |
+| What is late, and by how much? | `qryScheduleVariance`, `qryScheduleSlipByMilestone` |
+| Which sites need attention? | Parameterized site search, Site Profile report |
+| Can I get a pack per site or per province? | One-click PDF export (VBA) |
 
 ### Project at a glance
 
@@ -18,226 +56,543 @@ The project replaces scattered spreadsheets with a single source of truth that c
 |---|---|
 | Sites modelled | **100** (4 provinces, 98 municipalities) |
 | Population served | **99,320** inhabitants |
-| Database tables | **19** (9 core + 10 lookup), 16 defined relationships |
+| Database tables | **19** (9 core + 10 lookup), **16** defined relationships |
 | Cost lines (site × catalogue item) | **4,600** (46 per site) |
-| Unit-cost catalogue | **45 items** across **8 cost areas**, EUR and USD |
+| Unit-cost catalogue | **45 priced items** across **8 cost areas**, in EUR and USD, plus 1 manual-adjustment row |
 | Schedule records | **1,100** (11 milestones × 100 sites, planned vs. actual) |
 | Total modelled CAPEX | **€9.90 M / US$11.48 M** (catalogue-priced) |
-| Saved analytical queries | **7** (SQL, including parameterized search) |
-| Report | **Site Profile** report with **7 subreports** |
+| Saved analytical queries | **7**, including a parameterized search |
+| Report | **Site Profile** with **7 subreports** |
+
+<!-- TODO: confirm "45 items + 1 manual-adjustment row = 46 catalogue rows" matches your tblUnitCosts. State the exact EUR/USD rate (implied by the figures: about 1.16). -->
 
 ---
 
-## 2. Role & Responsibilities
+## 2. Headline Results
 
-**Role:** Database Designer & Project Reporting Lead
+All figures are computed directly from the database.
 
-- **Design** — Conceived the data architecture: entity-relationship model, normalization to third normal form, naming conventions, lookup/reference tables, primary and foreign keys, and the cost-model redesign described below.
-- **Planning** — Defined the reporting requirements and KPIs (CAPEX by area/province/site, schedule variance by milestone, permit and infrastructure readiness) and mapped each one to a query, a report, or a dashboard view before building.
-- **Execution** — Built the tables, relationships, SQL queries, report layouts, and VBA automation; loaded and reconciled the data; validated totals.
-- **Regular reporting** — Produced recurring status reports and refreshed dashboards as new data arrived, translating findings into conclusions and recommended actions for project stakeholders.
+| Finding | Evidence | Recommended action |
+|---|---|---|
+| **RF and Infrastructure drive 69% of CAPEX** | RF US$4.49 M (39.1%) + Infrastructure US$3.40 M (29.6%) of US$11.48 M | Concentrate vendor negotiation and design standardization on these two areas |
+| **Average site CAPEX US$114.8 K**, ranging US$49.4 K to US$174.1 K | `qrySiteTotalCost` | Review the highest-cost sites first; a 3.5× spread points to design or scope variance |
+| **Cost per inhabitant covered ≈ US$116** | US$11.48 M ÷ 99,320 inhabitants | Use as a benchmark KPI to prioritize and compare sites |
+| **Standardized structures** | 83 of 100 sites use monopoles; mean height 21.1 m | Supports bulk procurement and repeatable designs |
+| **Access type is associated with cost** | Pedestrian-access sites average US$102 K vs. US$120 K for aerial access | Treat access logistics as a planning-stage cost driver |
+| **Land-tenure mix** | 35 company-owned, 24 public schools, 21 private, 20 local-government; 44 agreements, 35 own sites, 21 leases | Anticipate permitting and negotiation effort by tenure type |
+| **Schedule: consistently slightly late** | Of 736 milestones with a recorded finish, **612 (83%)** closed after plan by an average of **2.6 days**; none by more than 5 days | Small slips compound across 11 sequential milestones; manage them early |
+| **Transmission, Infrastructure and Permits slip most** | Average slip of 3.5, 3.3 and 3.2 days | Add buffers and earlier submission to protect these milestones |
+| **Progress snapshot** | 60 sites with construction finished, 45 sites ready, from 1,100 tracked milestones | Baseline for the next reporting cycle |
 
----
-
-## 3. Challenge / Problem
-
-A rural rollout of 100 sites is a data-integration problem as much as an engineering one. Each site carries information owned by different teams: land and negotiation, permits, civil works, power, transmission, RF, and regulatory fees. Key challenges:
-
-1. **Fragmented data.** Cost, schedule, and technical attributes lived in separate sheets, making site-level and portfolio-level answers slow and error-prone.
-2. **Unstructured cost data.** The first design stored roughly 27 cost values as separate columns across five domain tables, with the unit-cost catalogue unlinked to them. Totals could not be traced back to a price and a quantity.
-3. **No consistent view of schedule performance.** Planned and actual dates for 11 milestones per site needed to be compared systematically to expose delays early.
-4. **Repeatable reporting.** Stakeholders needed the same trusted numbers every reporting cycle, without rebuilding reports by hand.
-
-**Goal:** a normalized, auditable database with query-driven dashboards and automated reports, able to answer *where is the money going, what is late, and which sites need attention* in seconds.
+<!-- TODO: confirm whether the per-milestone slip averages (3.5 / 3.3 / 3.2) are "when late" or over all completed milestones; qryScheduleSlipByMilestone in section 6.3 returns the "when late" figure. -->
 
 ---
 
-## 4. Actions / Process
+## 3. Data Architecture
 
-### 4.1 Methodology
+The model is normalized to **third normal form** with surrogate keys and lookup tables that enforce controlled vocabularies (owner type, access type, structure type, availability status, transmission medium and others).
 
-- **Requirements-first design** aligned with **PMBOK** knowledge areas (cost, schedule, scope) so every table and query traces to a project-management question.
-- **Relational modelling** with an ERD, normalization to 3NF, surrogate keys, and lookup tables to enforce consistent vocabularies (owner type, access type, structure type, availability status, transmission medium, and so on).
-- **Structured improvement cycle** (define → measure → analyze → improve → control), applied to the reporting process itself.
+```mermaid
+erDiagram
+    tblOwner      ||--o{ tblSites        : "owns"
+    tblAccessType ||--o{ tblSites        : "classifies"
+    tblSites      ||--o{ tblSiteCostLine : "has cost lines"
+    tblUnitCosts  ||--o{ tblSiteCostLine : "prices"
+    tblSites      ||--o{ tblDates        : "has milestones"
+    tblMilestones ||--o{ tblDates        : "defines"
+    tblSites      ||--o| tblRegulatory   : "regulatory"
+    tblSites      ||--o| tblPermits      : "permits"
+    tblSites      ||--o| tblInfrastructure : "infrastructure"
+    tblSites      ||--o| tblElectrical   : "power"
+    tblSites      ||--o| tblNetwork      : "transmission and RF"
 
-### 4.2 Steps performed
+    tblSites {
+        long SiteID PK
+        text SiteCode
+        text SiteName
+        text Province
+        text Municipality
+        long AccessTypeID FK
+        long OwnerID FK
+    }
+    tblSiteCostLine {
+        long SiteCostLineID PK
+        long SiteID FK
+        long UnitCostID FK
+        double Quantity
+    }
+    tblUnitCosts {
+        long UnitCostsID PK
+        text CostArea
+        currency UnitCostEUR
+        currency UnitCostUSD
+    }
+    tblDates {
+        long SiteID FK
+        long Milestone FK
+        date FinishPlan
+        date FinishReal
+    }
+```
 
-1. **Data modelling.** Designed 9 core tables (`tblSites`, `tblDates`, `tblRegulatory`, `tblPermits`, `tblInfrastructure`, `tblElectrical`, `tblNetwork`, `tblUnitCosts`, `tblSiteCostLine`) and 10 lookup tables, with foreign keys enforcing consistency.
-2. **Cost-model redesign.** Replaced ~27 scattered cost columns with a single **`tblSiteCostLine`** fact table (Site × Unit Cost × Quantity), linked by foreign key to `tblSites` and `tblUnitCosts`. Every cost is now `Quantity × Unit Cost`, fully traceable, and the catalogue can be repriced in one place. Totals were reconciled against the original model.
-3. **Query layer (SQL).** Built reusable queries for cost roll-ups, schedule variance, geographic and technical distributions, and a parameterized site search.
-4. **Report layer.** Designed the **Site Profile** report, a one-page-per-site view composed of 7 subreports (dates, regulatory, permits, infrastructure, electrical, network, cost lines).
-5. **Automation (VBA).** Added Visual Basic routines to generate reports on demand, export them to PDF per site or per province, and standardize the recurring reporting cycle.
-6. **Validation & reporting.** Cross-checked totals, tested edge cases (null actual dates, zero-quantity lines), and issued regular reports with findings and conclusions.
+<!-- TODO: verify cardinalities (1:1 vs 1:N) and key names against your Access relationship diagram. -->
 
-### 4.3 Key SQL (excerpts)
+*Simplified view. Field names that contain spaces in Access (for example `[Unit Cost USD]`) are shown without spaces, and 7 further lookup tables are omitted. The full relationship diagram is in section 9.*
 
-**Total CAPEX per site**
+### Core tables
+
+| Table | Purpose | Grain |
+|---|---|---|
+| `tblSites` | Site master data: location, owner, access type | 1 row per site |
+| `tblDates` | Planned vs. actual finish dates for 11 milestones | 1 row per site × milestone |
+| `tblRegulatory` | Regulatory status and fees | 1 row per site |
+| `tblPermits` | Permitting status | 1 row per site |
+| `tblInfrastructure` | Structure type, height, shelter, enclosure | 1 row per site |
+| `tblElectrical` | Power supply design | 1 row per site |
+| `tblNetwork` | Transmission and RF design | 1 row per site |
+| `tblUnitCosts` | Unit-cost catalogue in EUR and USD | 1 row per catalogue item |
+| `tblSiteCostLine` | **Fact table:** quantity of each catalogue item per site | 1 row per site × catalogue item |
+
+### Key design decisions
+
+| Decision | Rationale |
+|---|---|
+| **Costs modelled as facts, not columns** | The first design held about 27 cost values as separate columns and left the price catalogue unlinked. `tblSiteCostLine` now stores Quantity per site and item, so every cost is `Quantity × Unit Cost`, traceable and repriceable in one place |
+| **Surrogate keys** | Stable joins that do not depend on business codes that may change |
+| **Lookup tables with foreign keys** | Controlled vocabularies; invalid values are rejected at entry, not found at reporting time |
+| **Zero-quantity lines kept** | Every site carries the full set of cost lines, so comparisons across sites are like-for-like |
+| **Totals never stored** | Totals are always calculated by queries, so they cannot drift from the underlying data |
+
+---
+
+## 4. Role & Responsibilities
+
+**Role:** Database Designer & Project Reporting Lead (sole author of this portfolio project)
+
+- **Design.** Entity-relationship model, normalization to 3NF, `tbl` / `qry` / `rpt` naming conventions, lookup tables, primary and foreign keys, and the cost-model redesign.
+- **Planning.** Defined the reporting requirements and KPIs (CAPEX by area, province and site; schedule variance by milestone; permit and infrastructure readiness) and mapped each one to a query, report or dashboard view before building.
+- **Execution.** Built tables, relationships, SQL queries, report layouts and VBA automation; loaded and reconciled the data; validated totals.
+- **Regular reporting.** Produced recurring status reports and refreshed dashboards, translating findings into conclusions and recommended actions.
+
+---
+
+## 5. The Challenge
+
+A rural rollout of 100 sites is a data-integration problem as much as an engineering one. Each site carries information owned by different teams: land and negotiation, permits, civil works, power, transmission, RF and regulatory fees.
+
+1. **Fragmented data.** Cost, schedule and technical attributes lived in separate sheets, making site-level and portfolio-level answers slow and error-prone.
+2. **Unstructured cost data.** About 27 cost values sat in separate columns across five domain tables, with the catalogue unlinked. Totals could not be traced to a price and a quantity.
+3. **No consistent view of schedule performance.** Planned and actual dates for 11 milestones per site had to be compared systematically to expose delays early.
+4. **Repeatable reporting.** Stakeholders needed the same trusted numbers every cycle without rebuilding reports by hand.
+
+**Goal:** a normalized, auditable database with query-driven reports that answers *where is the money going, what is late, and which sites need attention* in seconds.
+
+---
+
+## 6. Approach & Implementation
+
+### 6.1 Methodology
+
+- **Requirements-first design** aligned with **PMBOK** knowledge areas (cost, schedule, scope), so every table and query traces to a project-management question.
+- **Relational modelling** with an ERD, 3NF, surrogate keys and lookup tables.
+- **Structured improvement cycle** (define, measure, analyze, improve, control) applied to the reporting process itself.
+
+### 6.2 Build steps
+
+1. **Data modelling.** 9 core tables and 10 lookup tables, with foreign keys enforcing consistency.
+2. **Cost-model redesign.** Replaced about 27 scattered cost columns with the single `tblSiteCostLine` fact table, linked to `tblSites` and `tblUnitCosts`. Totals were reconciled against the original model.
+3. **Query layer (SQL).** Reusable queries for cost roll-ups, schedule variance, geographic and technical distributions, and a parameterized site search.
+4. **Report layer.** The **Site Profile** report: one page per site, composed of 7 subreports (dates, regulatory, permits, infrastructure, electrical, network, cost lines).
+5. **Automation (VBA).** Routines that generate reports on demand and export them to PDF per site or per province.
+6. **Validation & reporting.** Cross-checked totals, tested edge cases (null actual dates, zero-quantity lines) and issued regular reports.
+
+### 6.3 Key SQL
+
+Queries use the Microsoft Access (ACE/Jet) dialect. A PostgreSQL version is in [section 11](#11-portability-postgresql-equivalent).
+
+**Total CAPEX per site** (`qrySiteTotalCost`)
 
 ```sql
-SELECT s.SiteID, s.SiteCode, s.SiteName, s.Province,
-       Sum(scl.Quantity * uc.[Unit Cost USD]) AS TotalCostUSD
+SELECT
+    s.SiteID,
+    s.SiteCode,
+    s.SiteName,
+    s.Province,
+    Sum(scl.Quantity * uc.[Unit Cost USD]) AS TotalCostUSD
 FROM (tblSites AS s
-      INNER JOIN tblSiteCostLine AS scl ON s.SiteID = scl.SiteID)
-      INNER JOIN tblUnitCosts AS uc ON scl.UnitCostID = uc.UnitCostsID
+    INNER JOIN tblSiteCostLine AS scl ON s.SiteID = scl.SiteID)
+    INNER JOIN tblUnitCosts AS uc ON scl.UnitCostID = uc.UnitCostsID
 GROUP BY s.SiteID, s.SiteCode, s.SiteName, s.Province
 ORDER BY Sum(scl.Quantity * uc.[Unit Cost USD]) DESC;
 ```
 
-**Schedule variance with status classification**
+**Schedule variance with status classification** (`qryScheduleVariance`)
 
 ```sql
-SELECT s.SiteCode, s.SiteName, m.MilestoneName,
-       d.[Finish Plan], d.[Finish Real],
-       DateDiff("d", d.[Finish Plan], d.[Finish Real]) AS VarianceDays,
-       IIf(d.[Finish Real] Is Null, "Not Completed",
-           IIf(DateDiff("d", d.[Finish Plan], d.[Finish Real]) > 0,
-               "Late", "On Time")) AS Status
+SELECT
+    s.SiteCode,
+    s.SiteName,
+    m.MilestoneName,
+    d.[Finish Plan],
+    d.[Finish Real],
+    DateDiff("d", d.[Finish Plan], d.[Finish Real]) AS VarianceDays,
+    IIf(d.[Finish Real] Is Null, "Not Completed",
+        IIf(DateDiff("d", d.[Finish Plan], d.[Finish Real]) > 0,
+            "Late", "On Time")) AS Status
 FROM (tblDates AS d
-      INNER JOIN tblSites AS s ON d.SiteID = s.SiteID)
-      INNER JOIN tblMilestones AS m ON d.Milestone = m.MilestoneID
+    INNER JOIN tblSites AS s ON d.SiteID = s.SiteID)
+    INNER JOIN tblMilestones AS m ON d.Milestone = m.MilestoneID
 ORDER BY DateDiff("d", d.[Finish Plan], d.[Finish Real]) DESC;
 ```
 
-**Parameterized site search (prompts for Province / Access Type, blank = all)**
+**Schedule slip by milestone** (`qryScheduleSlipByMilestone`)
 
 ```sql
-SELECT s.SiteID, s.SiteCode, s.SiteName, s.Province, s.Municipality,
-       at.AccessTypeName, o.OwnerCode
-FROM (tblSites AS s
-      INNER JOIN tblAccessType AS at ON s.AccessTypeID = at.AccessTypeID)
-      INNER JOIN tblOwner AS o ON s.OwnerID = o.OwnerID
-WHERE (s.Province = [Enter Province or leave blank:]
-       OR [Enter Province or leave blank:] Is Null)
-  AND (at.AccessTypeName = [Enter Access Type or leave blank:]
-       OR [Enter Access Type or leave blank:] Is Null);
+SELECT
+    m.MilestoneName,
+    Count(*) AS CompletedMilestones,
+    Sum(IIf(d.[Finish Real] > d.[Finish Plan], 1, 0)) AS LateMilestones,
+    Avg(IIf(d.[Finish Real] > d.[Finish Plan],
+            DateDiff("d", d.[Finish Plan], d.[Finish Real]), Null)) AS AvgSlipWhenLateDays
+FROM tblDates AS d
+    INNER JOIN tblMilestones AS m ON d.Milestone = m.MilestoneID
+WHERE d.[Finish Real] Is Not Null
+GROUP BY m.MilestoneName
+ORDER BY 4 DESC;
 ```
 
-### 4.4 Key VBA (representative automation module)
+**Parameterized site search** (`qrySiteSearch`; prompts for Province and Access Type, blank = all)
+
+```sql
+PARAMETERS [Enter Province or leave blank:] Text ( 255 ),
+           [Enter Access Type or leave blank:] Text ( 255 );
+SELECT
+    s.SiteID,
+    s.SiteCode,
+    s.SiteName,
+    s.Province,
+    s.Municipality,
+    act.AccessTypeName,
+    o.OwnerCode
+FROM (tblSites AS s
+    INNER JOIN tblAccessType AS act ON s.AccessTypeID = act.AccessTypeID)
+    INNER JOIN tblOwner AS o ON s.OwnerID = o.OwnerID
+WHERE (s.Province = [Enter Province or leave blank:]
+        OR [Enter Province or leave blank:] Is Null)
+  AND (act.AccessTypeName = [Enter Access Type or leave blank:]
+        OR [Enter Access Type or leave blank:] Is Null);
+```
+
+### 6.4 Key VBA
+
+Exports the Site Profile report to PDF for every site in a province, with folder validation, per-site error handling and guaranteed cleanup.
+
+<details>
+<summary><strong>Show VBA module (modReportExport)</strong></summary>
 
 ```vba
-' Export the Site Profile report to PDF for every site in a province.
-Public Sub ExportProvinceReports(ByVal strProvince As String, ByVal strFolder As String)
-    Dim rs As DAO.Recordset
+Option Compare Database
+Option Explicit
+
+Private Const REPORT_NAME As String = "rptSiteProfile"
+
+' Exports the Site Profile report for ONE site to PDF. Returns True on success.
+Public Function ExportSiteProfilePdf(ByVal lngSiteID As Long, _
+                                     ByVal strSiteCode As String, _
+                                     ByVal strFolder As String) As Boolean
     On Error GoTo ErrHandler
 
-    Set rs = CurrentDb.OpenRecordset( _
+    DoCmd.OpenReport REPORT_NAME, acViewPreview, , "SiteID = " & lngSiteID, acHidden
+    DoCmd.OutputTo acOutputReport, REPORT_NAME, acFormatPDF, _
+                   strFolder & "SiteProfile_" & strSiteCode & ".pdf"
+    ExportSiteProfilePdf = True
+
+CleanUp:
+    On Error Resume Next
+    DoCmd.Close acReport, REPORT_NAME, acSaveNo
+    Exit Function
+
+ErrHandler:
+    Debug.Print "Export failed for " & strSiteCode & ": " & Err.Number & " - " & Err.Description
+    Resume CleanUp
+End Function
+
+' Exports the Site Profile report for EVERY site in a province.
+' Example (Immediate window):  ExportProvinceReports "Lugo", "C:\Reports"
+Public Sub ExportProvinceReports(ByVal strProvince As String, ByVal strFolder As String)
+    Dim db As DAO.Database
+    Dim rs As DAO.Recordset
+    Dim lngOK As Long
+    Dim lngFailed As Long
+
+    ' Normalize and validate the destination folder
+    If Right$(strFolder, 1) <> "\" Then strFolder = strFolder & "\"
+    If Len(Dir$(strFolder, vbDirectory)) = 0 Then
+        MsgBox "Folder not found: " & strFolder, vbExclamation, "Export aborted"
+        Exit Sub
+    End If
+
+    On Error GoTo ErrHandler
+    Set db = CurrentDb
+    Set rs = db.OpenRecordset( _
         "SELECT SiteID, SiteCode FROM tblSites WHERE Province = '" & _
-        Replace(strProvince, "'", "''") & "' ORDER BY SiteCode")
+        Replace(strProvince, "'", "''") & "' ORDER BY SiteCode;", _
+        dbOpenSnapshot, dbReadOnly)
+
+    If rs.EOF Then
+        MsgBox "No sites found for province: " & strProvince, vbInformation
+        GoTo CleanUp
+    End If
 
     Do While Not rs.EOF
-        DoCmd.OpenReport "rptSiteProfile", acViewPreview, , _
-                         "SiteID = " & rs!SiteID, acHidden
-        DoCmd.OutputTo acOutputReport, "rptSiteProfile", acFormatPDF, _
-                       strFolder & "\SiteProfile_" & rs!SiteCode & ".pdf"
-        DoCmd.Close acReport, "rptSiteProfile", acSaveNo
+        If ExportSiteProfilePdf(rs!SiteID, rs!SiteCode, strFolder) Then
+            lngOK = lngOK + 1
+        Else
+            lngFailed = lngFailed + 1
+        End If
         rs.MoveNext
     Loop
 
-    rs.Close
-    MsgBox "Reports exported to " & strFolder, vbInformation
+    MsgBox lngOK & " report(s) exported to " & strFolder & _
+           IIf(lngFailed > 0, vbCrLf & lngFailed & " failed (see Immediate window).", ""), _
+           IIf(lngFailed > 0, vbExclamation, vbInformation), "Export complete"
+
+CleanUp:
+    On Error Resume Next
+    If Not rs Is Nothing Then rs.Close
+    Set rs = Nothing
+    Set db = Nothing
     Exit Sub
+
 ErrHandler:
     MsgBox "Export failed: " & Err.Description, vbExclamation
+    Resume CleanUp
 End Sub
 ```
 
-### 4.5 Tools
+</details>
 
-Microsoft Access (ACE engine) · SQL (Access/Jet dialect) · Visual Basic for Applications · Entity-relationship modelling · PMBOK cost & schedule baselines · Excel (data staging and dashboard front-ends)
+### 6.5 Tools
+
+Microsoft Access (ACE engine) · SQL (Access/Jet dialect) · Visual Basic for Applications · Entity-relationship modelling · PMBOK cost and schedule baselines · Excel (data staging and dashboard front-ends)
 
 ---
 
-## 5. Results / Impact
+## 7. Data Quality & Validation
 
-All figures below are computed directly from the database.
+| Check | Method | Outcome |
+|---|---|---|
+| Referential integrity | 16 enforced relationships | No orphaned site or schedule records |
+| Cost reconciliation | Sum of `Quantity × Unit Cost` compared with the original model | Totals tie to the **US$11.48 M** baseline |
+| Completeness | 46 cost lines × 100 sites; 11 milestones × 100 sites | 4,600 cost lines and 1,100 schedule records |
+| Null handling | Milestones without an actual date are classified, never dropped | Reported as "Not Completed" |
+| Edge cases | Zero-quantity lines, null actual dates | Handled explicitly in queries |
 
-### Delivered system
+<details>
+<summary><strong>Show validation queries</strong></summary>
 
-- **One source of truth** for 100 sites, 4,600 cost lines, and 1,100 schedule records, with 16 defined relationships and no orphaned site or schedule records.
-- **Fully traceable costing:** every dollar of the **US$11.48 M** CAPEX baseline resolves to *quantity × catalogue price*, replacing ~27 hard-coded cost columns with one fact table.
-- **Instant roll-ups** by site, area, province, owner, and access type through saved queries.
+```sql
+-- 1. Sites without cost lines (expected: 0 rows)
+SELECT s.SiteCode
+FROM tblSites AS s
+    LEFT JOIN tblSiteCostLine AS scl ON s.SiteID = scl.SiteID
+WHERE scl.SiteID Is Null;
 
-### Insights produced
+-- 2. Sites that do not have exactly 46 cost lines (expected: 0 rows)
+SELECT SiteID, Count(*) AS CostLines
+FROM tblSiteCostLine
+GROUP BY SiteID
+HAVING Count(*) <> 46;
 
-| Finding | Evidence |
-|---|---|
-| **RF and Infrastructure drive 69% of CAPEX** | RF US$4.49 M (39.1%) + Infrastructure US$3.40 M (29.6%) of US$11.48 M |
-| **Average site CAPEX of US$114.8 K**, ranging US$49.4 K to US$174.1 K | `qrySiteTotalCost`; the 3.5× spread points to where cost control matters most |
-| **Cost per inhabitant covered: ≈ US$116** | US$11.48 M ÷ 99,320 inhabitants |
-| **Standardized structure strategy** | 83 of 100 sites use monopoles; mean structure height 21.1 m |
-| **Access type affects cost** | Pedestrian-access sites average US$102 K vs. US$120 K for aerial-access sites |
-| **Land-tenure mix** | 35 sites on company-owned property, 24 on public schools, 21 private, 20 local-government facilities; 44 agreements, 35 own sites, 21 leases |
-| **Schedule is tightly controlled but consistently slightly late** | Of 736 milestones with a recorded finish, **612 (83%) closed after plan by an average of 2.6 days; none by more than 5 days** |
-| **Transmission, Infrastructure, and Permits slip the most** | Average slip of 3.5, 3.3, and 3.2 days respectively, flagging them as the milestones to protect |
-| **Progress snapshot** | 60 sites with construction finished and 45 sites ready, from 1,100 tracked milestones |
+-- 3. Portfolio CAPEX reconciliation (expected: about 11.48 million USD)
+SELECT Sum(scl.Quantity * uc.[Unit Cost USD]) AS PortfolioCapexUSD
+FROM tblSiteCostLine AS scl
+    INNER JOIN tblUnitCosts AS uc ON scl.UnitCostID = uc.UnitCostsID;
 
-### Business value
+-- 4. Duplicate site x catalogue item lines (expected: 0 rows)
+SELECT SiteID, UnitCostID, Count(*) AS Duplicates
+FROM tblSiteCostLine
+GROUP BY SiteID, UnitCostID
+HAVING Count(*) > 1;
+```
 
+</details>
+
+---
+
+## 8. Results & Business Value
+
+- **One source of truth** for 100 sites, 4,600 cost lines and 1,100 schedule records.
+- **Fully traceable costing:** every dollar of the US$11.48 M baseline resolves to *quantity × catalogue price*.
+- **Instant roll-ups** by site, area, province, owner and access type through saved queries.
 - **Faster, repeatable reporting** with one-click PDF generation per site or province, replacing manual assembly.
 - **Early-warning visibility** on milestones that slip, supporting corrective action before delays compound.
 - **Better budget decisions** through transparent cost drivers and a single editable price catalogue (EUR and USD).
-- **Audit-ready numbers**: one definition of cost and status, reused across every report.
+- **Audit-ready numbers:** one definition of cost and status, reused across every report.
 
 ---
 
-## 6. Visuals / Artifacts
+## 9. Visuals
 
-### Generated from the database
+### 9.1 Charts generated from the database
 
-| | |
-|---|---|
-| ![CAPEX by area](assets/capex_by_area.png) | ![Schedule slip by milestone](assets/schedule_slip_by_milestone.png) |
-| ![Site cost distribution](assets/site_cost_distribution.png) | |
+| CAPEX by cost area | Schedule slip by milestone | Site cost distribution |
+|:---:|:---:|:---:|
+| ![CAPEX by cost area](./assets/06capex_by_area.png) | ![Average schedule slip by milestone](./assets/07schedule_slip_by_milestone.png) | ![Distribution of CAPEX per site](./assets/08site_cost_distribution.png) |
 
-### Screenshots to add (recommended)
+### 9.2 Screenshots of the solution
 
-| # | Visual | Why it helps |
-|---|---|---|
-| 1 | **Relationships window / ERD** | Shows data-modelling skill at a glance |
-| 2 | **Query design view of `qrySiteTotalCost` + its datasheet result** | Proves SQL joins and aggregation |
-| 3 | **`qryScheduleVariance` datasheet** (sorted by variance) | Shows analytical thinking, not just structure |
-| 4 | **Site Profile report (page 1) with its subreports** | The most visual deliverable; use a clean, anonymized site |
-| 5 | **VBA editor with the export routine** | Evidence of Visual Basic skills |
-| 6 | **Exported PDF** opened beside the Access window | Demonstrates the end-to-end automated workflow |
-| 7 | **Before/after cost model** (scattered columns → `tblSiteCostLine`) | Tells the design-improvement story |
-| 8 | **Navigation Pane** showing tables, queries, and reports | Conveys scope and organization |
+**Relationship diagram**
 
-Suggested folder structure for this repository:
+![Database relationship diagram](./assets/01relationship_diagram.png)
 
-```
-/Terranova-4G-Database
+**Query: total cost per site**
+
+![qrySiteTotalCost result](./assets/09qrySiteTotalCost.png)
+
+**Query: schedule variance**
+
+![qryScheduleVariance result](./assets/10qryScheduleVariance.png)
+
+**Report: Site Profile**
+
+![Site Profile report](./assets/03dBreport.png)
+
+**VBA automation module**
+
+![VBA macros in the editor](./assets/04vb_macros.png)
+
+---
+
+## 10. Repository Structure & Quick Start
+
+```text
+terranova-access-database/
 ├── README.md
-├── Terranova_Project_Description.docx
-├── assets/            (charts and screenshots)
-├── sql/               (exported query SQL)
-├── vba/               (exported .bas modules)
-└── docs/              (ERD, data dictionary)
+├── LICENSE
+├── database/
+│   └── Terranova.accdb            # also attached to the latest Release
+├── sql/
+│   ├── qrySiteTotalCost.sql
+│   ├── qryScheduleVariance.sql
+│   ├── qryScheduleSlipByMilestone.sql
+│   ├── qrySiteSearch.sql
+│   └── validation_checks.sql
+├── vba/
+│   └── modReportExport.bas
+├── data/                          # synthetic CSV exports of the tables
+├── docs/
+│   └── data_dictionary.md
+└── assets/                        # charts and screenshots used in this README
+```
+
+**Requirements:** Windows with Microsoft Access 2016 or later (or Microsoft 365). Access is not available on macOS or Linux.
+
+**Quick start**
+
+1. Download `Terranova.accdb` from the latest **Release** and save it in a trusted folder.
+2. Open it and choose **Enable Content** so the VBA module can run.
+3. Open the **Site Profile** report or any `qry...` query from the Navigation Pane.
+4. To export PDFs: press `Alt + F11`, check that **Tools > References** includes *Microsoft Office xx.0 Access database engine Object Library*, then run in the Immediate window:
+
+```vba
+ExportProvinceReports "Lugo", "C:\Reports"
 ```
 
 ---
 
-## 7. Lessons Learned
+## 11. Portability: PostgreSQL Equivalent
+
+The design is not tied to Access. The same model migrates to PostgreSQL or SQL Server, where constraints can be declared explicitly.
+
+```sql
+CREATE TABLE site_cost_line (
+    site_cost_line_id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    site_id           integer       NOT NULL REFERENCES site (site_id),
+    unit_cost_id      integer       NOT NULL REFERENCES unit_cost (unit_cost_id),
+    quantity          numeric(12,2) NOT NULL DEFAULT 0 CHECK (quantity >= 0),
+    UNIQUE (site_id, unit_cost_id)      -- one line per site x catalogue item
+);
+
+-- Total CAPEX per site
+SELECT s.site_id, s.site_code, s.site_name, s.province,
+       SUM(scl.quantity * uc.unit_cost_usd) AS total_cost_usd
+FROM site AS s
+JOIN site_cost_line AS scl ON scl.site_id = s.site_id
+JOIN unit_cost      AS uc  ON uc.unit_cost_id = scl.unit_cost_id
+GROUP BY s.site_id, s.site_code, s.site_name, s.province
+ORDER BY total_cost_usd DESC;
+
+-- Schedule variance with status classification
+SELECT s.site_code, m.milestone_name, d.finish_plan, d.finish_real,
+       (d.finish_real - d.finish_plan) AS variance_days,
+       CASE WHEN d.finish_real IS NULL            THEN 'Not Completed'
+            WHEN d.finish_real > d.finish_plan    THEN 'Late'
+            ELSE 'On Time' END                    AS status
+FROM milestone_date AS d
+JOIN site           AS s ON s.site_id = d.site_id
+JOIN milestone      AS m ON m.milestone_id = d.milestone_id
+ORDER BY variance_days DESC NULLS LAST;
+```
+
+---
+
+## 12. Skills Demonstrated
+
+| Skill | Evidence in this project |
+|---|---|
+| Relational database design | ERD, 3NF, 19 tables, 16 relationships, surrogate keys, lookup tables |
+| Dimensional thinking | Fact table (`tblSiteCostLine`) separated from the price catalogue and site dimension |
+| SQL | Aggregations, multi-table joins, conditional logic, null handling, parameterized queries |
+| Data quality | Reconciliation, orphan checks, explicit edge-case handling |
+| Automation (VBA) | Parameterized PDF export with validation, error handling and cleanup |
+| Executive reporting | Seven-subreport Site Profile; KPIs with recommended actions |
+| Project management | PMBOK-aligned cost and schedule baselines; variance analysis |
+| Data migration | Cost-model redesign reconciled to the original totals |
+| Documentation | Data dictionary, validation queries, reproducible quick start |
+
+---
+
+## 13. Lessons Learned
 
 **Technical**
 
-- **Model costs as facts, not columns.** Moving to a quantity × unit-price structure made totals auditable and repricing trivial. Designing the catalogue relationship from day one avoids a mid-project redesign.
-- **Enforce referential integrity early.** Lookup tables and foreign keys prevent inconsistent data entry and catch errors at load time rather than at reporting time.
+- **Model costs as facts, not columns.** A quantity × unit-price structure makes totals auditable and repricing trivial. Designing the catalogue relationship from day one avoids a mid-project redesign.
+- **Enforce referential integrity early.** Lookup tables and foreign keys catch errors at load time rather than at reporting time.
 - **Treat nulls deliberately.** Milestones without actual dates must be classified ("Not Completed"), never silently dropped, or schedule metrics are overstated.
 - **Parameterized queries beat duplicated queries.** One search query with optional parameters replaced a family of near-identical filters.
+- **Automation needs defensive code.** Folder checks, per-item error handling and guaranteed cleanup turn a macro into a dependable tool.
 
 **Management**
 
 - **Start from the decisions, not the data.** Defining the questions stakeholders ask first kept the database lean and the reports useful.
-- **Small, consistent delays add up.** A 2–3 day average slip looks harmless per milestone but compounds across 11 sequential milestones; tracking by milestone type shows where to intervene.
+- **Small, consistent delays add up.** A 2 to 3 day average slip looks harmless per milestone but compounds across 11 sequential milestones.
 
-**Benefits to the organization**
+**Benefits to an organization**
 
-1. A **single source of truth** shared by engineering, finance, permitting, and project control.
-2. **Cost transparency:** clear visibility of what drives CAPEX (RF and Infrastructure ≈ 69%) and where per-site variation comes from.
+1. A **single source of truth** shared by engineering, finance, permitting and project control.
+2. **Cost transparency:** clear visibility of what drives CAPEX and where per-site variation comes from.
 3. **Proactive schedule control** through objective, milestone-level variance reporting.
 4. **Time savings and consistency** from automated, repeatable reports.
-5. **Scalability:** the same model extends to additional sites by adding rows, not redesigning the structure.
+5. **Scalability:** the model extends to additional sites by adding rows, not by redesigning the structure.
+
+**Roadmap:** data-entry forms and a switchboard, PostgreSQL migration scripts, and an Excel dashboard front-end.
 
 ---
 
-*Data and figures are derived from the Terranova project database. Costs are catalogue-priced estimates (EUR converted to USD at 1.16).*
+## 14. About the Author
+
+**Fernando Muñoz**: Project and program leader with 30+ years of experience in telecommunications (BellSouth, Telefónica, Amdocs, SBA Communications). PMP, PSM I and two Six Sigma Black Belt certifications. Based in Quito, Ecuador; bilingual (Spanish and English).
+
+Through **FxMr** I offer remote consulting to international clients in **project management, data analytics, database design and automation**.
+
+- Email: [fxmr.consult@gmail.com](mailto:fxmr.consult@gmail.com)
+- LinkedIn: [your-profile-url](https://www.linkedin.com/in/your-profile-url)
+
+*Looking for a database built around your project questions? Get in touch.*
+
+---
+
+## License & Disclaimer
+
+Code and documentation are released under the MIT License. All data and figures are derived from the hypothetical Terranova project database; costs are catalogue-priced estimates.
