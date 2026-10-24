@@ -169,10 +169,10 @@ erDiagram
 
 **Role:** Database Designer & Project Reporting Lead (sole author of this portfolio project)
 
-- **Design.** Entity-relationship model, normalization to 3NF, `tbl` / `qry` / `rpt` naming conventions, lookup tables, primary and foreign keys, and the cost-model redesign.
-- **Planning.** Defined the reporting requirements and KPIs (CAPEX by area, province and site; schedule variance by milestone; permit and infrastructure readiness) and mapped each one to a query, report or dashboard view before building.
-- **Execution.** Built tables, relationships, SQL queries, report layouts and VBA automation; loaded and reconciled the data; validated totals.
-- **Regular reporting.** Produced recurring status reports and refreshed dashboards, translating findings into conclusions and recommended actions.
+- **Design:** Entity-relationship model, normalization to 3NF, `tbl` / `qry` / `rpt` naming conventions, lookup tables, primary and foreign keys, and the cost-model redesign.
+- **Planning:** Defined the reporting requirements and KPIs (CAPEX by area, province and site; schedule variance by milestone; permit and infrastructure readiness) and mapped each one to a query, report or dashboard view before building.
+- **Execution:** Built tables, relationships, SQL queries, report layouts and VBA automation; loaded and reconciled the data; validated totals.
+- **Regular reporting:** Produced recurring status reports and refreshed dashboards, translating findings into conclusions and recommended actions.
 
 ---
 
