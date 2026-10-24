@@ -587,7 +587,7 @@ ORDER BY variance_days DESC NULLS LAST;
 Through **FxMr** I offer remote consulting to international clients in **project management, data analytics, database design and automation**.
 
 - Email: [fxmr.consult@gmail.com](mailto:fxmr.consult@gmail.com)
-- LinkedIn: [your-profile-url](https://www.linkedin.com/in/your-profile-url)
+- LinkedIn: [LinkedIn profile](https://www.linkedin.com/in/fernando-munoz-4737571)
 
 *Looking for a database built around your project questions? Get in touch.*
 
