@@ -180,10 +180,10 @@ erDiagram
 
 A rural rollout of 100 sites is a data-integration problem as much as an engineering one. Each site carries information owned by different teams: land and negotiation, permits, civil works, power, transmission, RF and regulatory fees.
 
-1. **Fragmented data.** Cost, schedule and technical attributes lived in separate sheets, making site-level and portfolio-level answers slow and error-prone.
-2. **Unstructured cost data.** About 27 cost values sat in separate columns across five domain tables, with the catalogue unlinked. Totals could not be traced to a price and a quantity.
-3. **No consistent view of schedule performance.** Planned and actual dates for 11 milestones per site had to be compared systematically to expose delays early.
-4. **Repeatable reporting.** Stakeholders needed the same trusted numbers every cycle without rebuilding reports by hand.
+1. **Fragmented data:** Cost, schedule and technical attributes lived in separate sheets, making site-level and portfolio-level answers slow and error-prone.
+2. **Unstructured cost data:** About 27 cost values sat in separate columns across five domain tables, with the catalogue unlinked. Totals could not be traced to a price and a quantity.
+3. **No consistent view of schedule performance:** Planned and actual dates for 11 milestones per site had to be compared systematically to expose delays early.
+4. **Repeatable reporting:** Stakeholders needed the same trusted numbers every cycle without rebuilding reports by hand.
 
 **Goal:** a normalized, auditable database with query-driven reports that answers *where is the money going, what is late, and which sites need attention* in seconds.
 
@@ -199,12 +199,12 @@ A rural rollout of 100 sites is a data-integration problem as much as an enginee
 
 ### 6.2 Build steps
 
-1. **Data modelling.** 9 core tables and 10 lookup tables, with foreign keys enforcing consistency.
-2. **Cost-model redesign.** Replaced about 27 scattered cost columns with the single `tblSiteCostLine` fact table, linked to `tblSites` and `tblUnitCosts`. Totals were reconciled against the original model.
-3. **Query layer (SQL).** Reusable queries for cost roll-ups, schedule variance, geographic and technical distributions, and a parameterized site search.
-4. **Report layer.** The **Site Profile** report: one page per site, composed of 7 subreports (dates, regulatory, permits, infrastructure, electrical, network, cost lines).
-5. **Automation (VBA).** Routines that generate reports on demand and export them to PDF per site or per province.
-6. **Validation & reporting.** Cross-checked totals, tested edge cases (null actual dates, zero-quantity lines) and issued regular reports.
+1. **Data modelling:** 9 core tables and 10 lookup tables, with foreign keys enforcing consistency.
+2. **Cost-model redesign:** Replaced about 27 scattered cost columns with the single `tblSiteCostLine` fact table, linked to `tblSites` and `tblUnitCosts`. Totals were reconciled against the original model.
+3. **Query layer (SQL):** Reusable queries for cost roll-ups, schedule variance, geographic and technical distributions, and a parameterized site search.
+4. **Report layer:** The **Site Profile** report: one page per site, composed of 7 subreports (dates, regulatory, permits, infrastructure, electrical, network, cost lines).
+5. **Automation (VBA):** Routines that generate reports on demand and export them to PDF per site or per province.
+6. **Validation & reporting:** Cross-checked totals, tested edge cases (null actual dates, zero-quantity lines) and issued regular reports.
 
 ### 6.3 Key SQL
 
@@ -579,11 +579,11 @@ ORDER BY variance_days
 
 **Technical**
 
-- **Model costs as facts, not columns.** A quantity × unit-price structure makes totals auditable and repricing trivial. Designing the catalogue relationship from day one avoids a mid-project redesign.
-- **Enforce referential integrity early.** Lookup tables and foreign keys catch errors at load time rather than at reporting time.
-- **Treat nulls deliberately.** Milestones without actual dates must be classified ("Not Completed"), never silently dropped, or schedule metrics are overstated.
-- **Parameterized queries beat duplicated queries.** One search query with optional parameters replaced a family of near-identical filters.
-- **Automation needs defensive code.** Folder checks, per-item error handling and guaranteed cleanup turn a macro into a dependable tool.
+- **Model costs as facts, not columns:** A quantity × unit-price structure makes totals auditable and repricing trivial. Designing the catalogue relationship from day one avoids a mid-project redesign.
+- **Enforce referential integrity early:** Lookup tables and foreign keys catch errors at load time rather than at reporting time.
+- **Treat nulls deliberately:** Milestones without actual dates must be classified ("Not Completed"), never silently dropped, or schedule metrics are overstated.
+- **Parameterized queries beat duplicated queries:** One search query with optional parameters replaced a family of near-identical filters.
+- **Automation needs defensive code:** Folder checks, per-item error handling and guaranteed cleanup turn a macro into a dependable tool.
 
 **Management**
 
