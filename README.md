@@ -27,9 +27,9 @@
 7. [Data Quality & Validation](#7-data-quality--validation)
 8. [Results & Business Value](#8-results--business-value)
 9. [Visuals](#9-visuals)
-10. [Skills Demonstrated](#12-skills-demonstrated)
-11. [Lessons Learned](#13-lessons-learned)
-12. [About the Author](#14-about-the-author)
+10. [Skills Demonstrated](#10-skills-demonstrated)
+11. [Lessons Learned](#11-lessons-learned)
+12. [About the Author](#12-about-the-author)
 
 ---
 
