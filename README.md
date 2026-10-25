@@ -27,11 +27,9 @@
 7. [Data Quality & Validation](#7-data-quality--validation)
 8. [Results & Business Value](#8-results--business-value)
 9. [Visuals](#9-visuals)
-10. [Repository Structure & Quick Start](#10-repository-structure--quick-start)
-11. [Portability: PostgreSQL Equivalent](#11-portability-postgresql-equivalent)
-12. [Skills Demonstrated](#12-skills-demonstrated)
-13. [Lessons Learned](#13-lessons-learned)
-14. [About the Author](#14-about-the-author)
+10. [Skills Demonstrated](#12-skills-demonstrated)
+11. [Lessons Learned](#13-lessons-learned)
+12. [About the Author](#14-about-the-author)
 
 ---
 
@@ -464,102 +462,7 @@ HAVING Count(*) > 1;
 
 ---
 
-## 10. Repository Structure & Quick Start
-
-```text
-terranova-access-database/
-├── README.md
-├── LICENSE
-├── database/
-│   └── Terranova.accdb            # also attached to the latest Release
-├── sql/
-│   ├── qrySiteTotalCost.sql
-│   ├── qryScheduleVariance.sql
-│   ├── qryScheduleSlipByMilestone.sql
-│   ├── qrySiteSearch.sql
-│   └── validation_checks.sql
-├── vba/
-│   └── modReportExport.bas
-├── data/                          # synthetic CSV exports of the tables
-├── docs/
-│   └── data_dictionary.md
-└── assets/                        # charts and screenshots used in this README
-```
-
-**Requirements:** Windows with Microsoft Access 2016 or later (or Microsoft 365). Access is not available on macOS or Linux.
-
-**Quick start**
-
-1. Download `Terranova.accdb` from the latest **Release** and save it in a trusted folder.
-2. Open it and choose **Enable Content** so the VBA module can run.
-3. Open the **Site Profile** report or any `qry...` query from the Navigation Pane.
-4. To export PDFs: press `Alt + F11`, check that **Tools > References** includes *Microsoft Office xx.0 Access database engine Object Library*, then run in the Immediate window:
-
-```vba
-ExportProvinceReports "Lugo", "C:\Reports"
-```
-
----
-
-## 11. Portability: PostgreSQL Equivalent
-
-The design is not tied to Access. The same model migrates to PostgreSQL or SQL Server, where constraints can be declared explicitly.
-
-```sql
-CREATE TABLE
-    site_cost_line (
-    site_cost_line_id integer       GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    site_id           integer       NOT NULL REFERENCES site (site_id),
-    unit_cost_id      integer       NOT NULL REFERENCES unit_cost (unit_cost_id),
-    quantity          numeric(12,2) NOT NULL DEFAULT 0 CHECK (quantity >= 0),
-    UNIQUE (site_id, unit_cost_id)      -- one line per site x catalogue item
-);
-
--- Total CAPEX per site
-SELECT
-    s.site_id,
-    s.site_code,
-    s.site_name,
-    s.province,
-    SUM(scl.quantity * uc.unit_cost_usd) AS total_cost_usd
-FROM
-    site AS s
-    JOIN site_cost_line AS scl ON scl.site_id = s.site_id
-    JOIN unit_cost      AS uc  ON uc.unit_cost_id = scl.unit_cost_id
-GROUP BY
-    s.site_id,
-    s.site_code,
-    s.site_name,
-    s.province
-ORDER BY
-    total_cost_usd
-DESC;
-
--- Schedule variance with status classification
-SELECT
-    s.site_code,
-    m.milestone_name,
-    d.finish_plan,
-    d.finish_real,
-    (d.finish_real - d.finish_plan) AS variance_days,
-    CASE
-        WHEN d.finish_real IS NULL THEN 'Not Completed'
-        WHEN d.finish_real > d.finish_plan THEN 'Late'
-        ELSE 'On Time'
-    END AS status
-FROM
-    milestone_date AS d
-    JOIN site AS s
-        ON s.site_id = d.site_id
-    JOIN milestone AS m
-        ON m.milestone_id = d.milestone_id
-ORDER BY variance_days
-    DESC NULLS LAST;
-```
-
----
-
-## 12. Skills Demonstrated
+## 10. Skills Demonstrated
 
 | Skill | Evidence in this project |
 |---|---|
@@ -575,7 +478,7 @@ ORDER BY variance_days
 
 ---
 
-## 13. Lessons Learned
+## 11. Lessons Learned
 
 **Technical**
 
@@ -602,7 +505,7 @@ ORDER BY variance_days
 
 ---
 
-## 14. About the Author
+## 12. About the Author
 
 **Fernando Muñoz**: Project and program leader with 30+ years of experience in telecommunications (BellSouth, Telefónica, Amdocs, SBA Communications). PMP, PSM I and two Six Sigma Black Belt certifications. Based in Quito, Ecuador; bilingual (Spanish and English).
 
@@ -612,9 +515,3 @@ Through **FxMr** I offer remote consulting to international clients in **project
 - LinkedIn: [LinkedIn profile](https://www.linkedin.com/in/fernando-munoz-4737571)
 
 *Looking for a database built around your project questions? Get in touch.*
-
----
-
-## License & Disclaimer
-
-Code and documentation are released under the MIT License. All data and figures are derived from the hypothetical Terranova project database; costs are catalogue-priced estimates.
